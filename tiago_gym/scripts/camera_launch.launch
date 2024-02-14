@@ -1,0 +1,26 @@
+<launch>
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="camera" value="agentview_left"/>
+        <arg name="usb_port_id" value="2-1"/>
+        <arg name="depth_width" value="640"/>
+        <arg name="depth_height" value="360"/>
+        <arg name="depth_fps" value="30"/>
+        <arg name="color_width" value="640"/>
+        <arg name="color_height" value="360"/>
+        <arg name="color_fps" value="30"/>
+    </include>
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="camera" value="agentview_right"/>
+        <arg name="usb_port_id" value="2-2"/>
+        <arg name="depth_width" value="640"/>
+        <arg name="depth_height" value="360"/>
+        <arg name="depth_fps" value="30"/>
+        <arg name="color_width" value="640"/>
+        <arg name="color_height" value="360"/>
+        <arg name="color_fps" value="30"/>
+    </include>
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="camera" value="body_tracking_camera"/>
+        <arg name="usb_port_id" value="4-1"/>
+    </include>
+</launch>

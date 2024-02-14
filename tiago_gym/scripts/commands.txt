@@ -1,0 +1,71 @@
+rostopic pub /whole_body_kinematic_controller/arm_right_tool_link_goal \geometry_msgs/PoseStamped "
+header:
+    seq: 0
+    stamp:
+        secs: 0
+        nsecs: 0
+    frame_id: '/base_footprint'
+pose:
+    position:
+        x: 0.5
+        y: 0.0
+        z: 0.5
+    orientation:
+        x: 0.0
+        y: 1.0
+        z: 0.0
+        w: 0.0"
+
+rostopic pub /whole_body_kinematic_controller/gaze_objective_xtion_optical_frame_goal \geometry_msgs/PoseStamped "
+header:
+    seq: 0
+    stamp:
+        secs: 0
+        nsecs: 0
+    frame_id: 'base_footprint'
+pose:
+    position:
+        x: 1.0
+        y: 0.0
+        z: 0.5
+    orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0"
+
+
+# Run WBC without torso
+rosservice call /controller_manager/switch_controller "start_controllers:
+- ''             
+stop_controllers:
+- 'head_controller'
+- 'arm_left_controller'
+- 'arm_right_controller'
+- 'whole_body_kinematic_controller'
+strictness: 0"
+rosservice call /controller_manager/unload_controller "{name:'whole_body_kinematic_controller'}"
+roslaunch tiago_dual_wbc tiago_dual_wbc.launch control_torso:=false base_frame:=base_footprint
+4. In another tab: roslaunch tiago_dual_wbc push_reference_tasks.launch source_data_arm:=topic_reflexx_typeII source_data_gaze:=topic gaze:=false
+
+# to only use right arm
+3. roslaunch tiago_dual_wbc tiago_dual_wbc.launch control_torso:=false base_frame:=base_footprint control_left_arm:=false
+4. In another tab: roslaunch tiago_dual_wbc push_reference_tasks.launch source_data_arm:=topic_reflexx_typeII source_data_gaze:=topic
+
+# helpful commmands
+1. rosservice call /whole_body_kinematic_controller/get_stack_description
+2. rosservice call /controller_manager/list_controllers 
+
+# to start realsense
+1. source /opt/ros/noetic/setup.bash
+2. roslaunch realsense2_camera rs_camera.launch usb_port_id:=2-1 camera:=agentview_left
+or
+2. roslaunch realsense2_camera rs_camera.launch usb_port_id:=2-2 camera:=body_tracking_camera
+or
+2. roslaunch realsense2_camera rs_camera.launch usb_port_id:=3-1 camera:=agentview_right
+
+# to use ros without tiago on
+unset ROS_IP
+unset ROS_MASTER_URI
+source /opt/ros/noetic/setup.bash
+roscore
