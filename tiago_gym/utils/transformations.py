@@ -1,3 +1,5 @@
+#### code adapted from https://github.com/AlexanderKhazatsky/R2D2/blob/main/r2d2/misc/transformations.py ####
+
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 

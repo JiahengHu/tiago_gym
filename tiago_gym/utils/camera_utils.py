@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pyrealsense2 as rs
 from typing import Dict
-from real_tiago.utils.ros_utils import Listener
+from tiago_gym.utils.ros_utils import Listener
 
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, CameraInfo

@@ -3,9 +3,8 @@ import time
 import numpy as np
 import rospy
 from collections import OrderedDict
-# from real_tiago.tiago.tiago_core import Tiago
-from real_tiago.tiago.tiago_core_custom_ik import Tiago
-from real_tiago.utils.general_utils import AttrDict
+from tiago_gym.tiago.tiago_core import Tiago
+from tiago_gym.utils.general_utils import AttrDict
 
 class TiagoGym(gym.Env):
 

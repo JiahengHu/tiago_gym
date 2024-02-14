@@ -1,6 +1,6 @@
 from geometry_msgs.msg import PoseStamped
-from real_tiago.utils.ros_utils import Publisher, create_pose_command
-from real_tiago.utils.camera_utils import Camera
+from tiago_gym.utils.ros_utils import Publisher, create_pose_command
+from tiago_gym.utils.camera_utils import Camera
 
 class TiagoHead:
 

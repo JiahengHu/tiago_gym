@@ -4,8 +4,8 @@ import numpy as np
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import LaserScan
-from real_tiago.utils.ros_utils import Publisher, Listener, create_twist_command
-from real_tiago.utils.transformations import quat_diff, quat_to_euler
+from tiago_gym.utils.ros_utils import Publisher, Listener, create_twist_command
+from tiago_gym.utils.transformations import quat_diff, quat_to_euler
 
 class TiagoBase:
     

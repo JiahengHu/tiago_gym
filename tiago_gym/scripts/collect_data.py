@@ -5,14 +5,15 @@ import copy
 import rospy
 import numpy as np
 import h5py
-from real_tiago.user_interfaces.teleop_policy import TeleopPolicy
-from real_tiago.tiago.tiago_gym import TiagoGym    
-from real_tiago.utils.camera_utils import Camera, flip_img, img_processing, depth_processing
+from tiago_gym.tiago.tiago_gym import TiagoGym    
+from tiago_gym.utils.camera_utils import Camera, flip_img, img_processing, depth_processing
 
 rospy.init_node('tiago_data_collect')
-# from real_tiago.configs.teleop_config.only_vr import teleop_config
-from real_tiago.configs.teleop_config.vr_hand_human_base import teleop_config
-# from real_tiago.configs.teleop_config.only_human_kpts import teleop_config
+
+from telemoma.input_interface.teleop_policy import TeleopPolicy
+# from telemoma.configs.only_vr import teleop_config
+from telemoma.configs.vr_hand_human_base import teleop_config
+# from telemoma.configs.only_human_kpts import teleop_config
 
 
 SINGLE_HAND=False

@@ -4,7 +4,7 @@ import numpy as np
 from std_msgs.msg import Header
 from control_msgs.msg  import JointTrajectoryControllerState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from real_tiago.utils.ros_utils import Publisher, Listener
+from tiago_gym.utils.ros_utils import Publisher, Listener
 
 class TiagoTorso:
     
