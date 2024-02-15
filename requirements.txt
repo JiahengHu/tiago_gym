@@ -1,3 +1,6 @@
 numpy==1.26
-opencv-python==4.9
+opencv-python==4.9.0.80
 scipy==1.11.4
+pyyaml
+rospkg
+gym==0.26.2
