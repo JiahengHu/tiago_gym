@@ -1,80 +1,72 @@
-from geometry_msgs.msg import PoseStamped
-from tiago_gym.utils.ros_utils import Publisher, create_pose_command
+import rospy
+import numpy as np
+
+from std_msgs.msg import Header
+from control_msgs.msg import JointTrajectoryControllerState
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from tiago_gym.utils.ros_utils import Publisher, Listener, create_pose_command
 from tiago_gym.utils.camera_utils import Camera
 
 class TiagoHead:
 
-    def __init__(self, head_policy) -> None:
-        self.head_enabled = head_policy is not None
-        self.head_policy = head_policy
-
+    def __init__(self, head_enabled) -> None:
+        self.head_enabled = head_enabled
+        
         self.img_topic = "/xtion/rgb/image_raw"
         self.depth_topic = "/xtion/depth/image_raw"
         self.head_camera = Camera(img_topic=self.img_topic, depth_topic=self.depth_topic)
 
         self.setup_actors()
 
+    def setup_listeners(self):
+        def joint_process_func(data):
+            return np.array(data.actual.positions)
+
+        self.joint_reader = Listener(f'/head_controller/state', JointTrajectoryControllerState, post_process_func=joint_process_func)
+
     def setup_actors(self):
         self.head_writer = None
         if self.head_enabled:
-            self.head_writer = Publisher('/whole_body_kinematic_controller/gaze_objective_xtion_optical_frame_goal', PoseStamped)
+            self.head_writer = Publisher('/head_controller/command', JointTrajectory)
+
+        self.reset_state = 0
 
     def write(self, trans, quat):
         if self.head_enabled:
             self.head_writer.write(create_pose_command(trans, quat))
+
+    def get_head_joints(self):
+        return self.joint_reader.get_most_recent_msg()
     
     def get_camera_obs(self):
         return self.head_camera.get_camera_obs()
     
-    def step(self, env_action):
-        pos, quat = self.head_policy.get_action(env_action)
-        if pos is None:
-            return
-        self.write(pos, quat)
-
-    def reset_step(self, env_action):
-        pos, quat = self.head_policy.get_action(env_action, euler=False)
-        if pos is None:
-            return
-        self.write(pos, quat)
-
-class TiagoHeadPolicy:
-
-    def get_action(self, env_action, euler=True):
-        '''
-            if euler is true then env_action[arm] is expected to be a 7 dimensional vector -> pos(3), rot(3), grip(1) 
-            otherwise, rot(4) is expected as a quat
-        '''
-        raise NotImplementedError
-
-class FollowHandPolicy(TiagoHeadPolicy):
-
-    def __init__(self, arm='right'):
-        super().__init__()
-        assert arm in ['right', 'left']
-
-        self.arm = arm
-    
-    def get_action(self, env_action, euler=True):
-        if env_action[self.arm] is None:
-            return None, None
+    def create_head_command(self, pos):
+        message = JointTrajectory()
+        message.header = Header()
+        message.joint_names = ['torso_lift_joint']
+        point = JointTrajectoryPoint(positions = pos, time_from_start = rospy.Duration(0.5))
+        message.points.append(point)
         
-        position = env_action[self.arm][:3]
-        return position, [0, 0, 0, 1]
-    
+        return message
 
-class LookAtFixedPoint(TiagoHeadPolicy):
+    def step(self, action):
+        delta = np.zeros(2)
+        if action == 1:
+            delta[0] = 0.3
+        elif action == 2:
+            delta[0] = -0.3
 
-    def __init__(self, point) -> None:
-        super().__init__()
+        head_joint_goal = self.get_head_joints() + delta
 
-        self.point = point
-    
-    def get_action(self, env_action, euler=True):
-        position = self.point[:3]
+        # joint limits
+        head_joint_goal = np.clip(head_joint_goal, -0.9, 0.9)
 
-        return position, [0, 0, 0, 1]
+        self.head_writer.write(self.create_head_command(head_joint_goal))
 
+    def reset(self, abs_pos):
+        if abs_pos is not None:
+            self.head_writer.write(self.create_head_command(abs_pos))
         
 
 

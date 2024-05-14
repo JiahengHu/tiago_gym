@@ -10,7 +10,7 @@ class TiagoGym(gym.Env):
 
     def __init__(self,
                     frequency=10,
-                    head_policy=None,
+                    head_enabled=False,
                     base_enabled=False,
                     torso_enabled=False,
                     right_arm_enabled=True,
@@ -22,6 +22,7 @@ class TiagoGym(gym.Env):
         super(TiagoGym).__init__()
 
         self.frequency = frequency
+        self.head_enabled = head_enabled
         self.base_enabled = base_enabled
         self.torso_enabled = torso_enabled
         self.right_arm_enabled = right_arm_enabled
@@ -30,7 +31,7 @@ class TiagoGym(gym.Env):
         self.left_gripper_enabled = left_gripper_type is not None
 
         self.tiago = Tiago(
-                        head_policy=head_policy,
+                        head_enabled=head_enabled,
                         base_enabled=base_enabled,
                         torso_enabled=torso_enabled,
                         right_arm_enabled=right_arm_enabled,
@@ -92,6 +93,12 @@ class TiagoGym(gym.Env):
             shape=(1,)
         )
 
+        ob_space['head'] = gym.spaces.Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(2,)
+        )
+        
         for cam in self.cameras.keys():
             
             ob_space[f'{cam}_image'] = gym.spaces.Box(
@@ -139,6 +146,9 @@ class TiagoGym(gym.Env):
                 high=np.inf,
                 shape=(1,),
             )
+        
+        if self.head_enabled:
+            act_space['head'] = gym.spaces.Discrete(3)
 
         return gym.spaces.Dict(act_space)
 
@@ -149,6 +159,7 @@ class TiagoGym(gym.Env):
             'base': np.array(self.tiago.base.get_delta_pose()),
             'base_velocity': np.array(self.tiago.base.get_velocity()),
             'torso': np.array(self.tiago.torso.get_torso_extension()),
+            'head': np.array(self.tiago.head.get_head_joints()),
             'scan': np.array(self.tiago.base.get_scan())
         })
 
