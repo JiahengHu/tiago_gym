@@ -15,7 +15,7 @@ class TiagoHead:
         self.img_topic = "/xtion/rgb/image_raw"
         self.depth_topic = "/xtion/depth/image_raw"
         self.head_camera = Camera(img_topic=self.img_topic, depth_topic=self.depth_topic)
-
+        self.setup_listeners()
         self.setup_actors()
 
     def setup_listeners(self):
@@ -41,11 +41,11 @@ class TiagoHead:
     def get_camera_obs(self):
         return self.head_camera.get_camera_obs()
     
-    def create_head_command(self, pos):
+    def create_head_command(self, pos, duration=0.25):
         message = JointTrajectory()
         message.header = Header()
-        message.joint_names = ['torso_lift_joint']
-        point = JointTrajectoryPoint(positions = pos, time_from_start = rospy.Duration(0.5))
+        message.joint_names = ['head_1_joint', 'head_2_joint']
+        point = JointTrajectoryPoint(positions = pos, time_from_start = rospy.Duration(duration))
         message.points.append(point)
         
         return message
@@ -56,6 +56,10 @@ class TiagoHead:
             delta[0] = 0.3
         elif action == 2:
             delta[0] = -0.3
+        elif action == 3:
+            delta[1] = 0.3
+        elif action == 4:
+            delta[1] = -0.3
 
         head_joint_goal = self.get_head_joints() + delta
 
@@ -66,7 +70,8 @@ class TiagoHead:
 
     def reset(self, abs_pos):
         if abs_pos is not None:
-            self.head_writer.write(self.create_head_command(abs_pos))
+            cmd = self.create_head_command(abs_pos['head'], duration=0.5)
+            self.head_writer.write(cmd)
         
 
 

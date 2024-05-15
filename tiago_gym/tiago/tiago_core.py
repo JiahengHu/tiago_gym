@@ -61,7 +61,7 @@ class Tiago:
     def step(self, action):
         
         for side in ['right', 'left']:
-            if action[side] is None:
+            if (side not in action) or action[side] is None:
                 continue
             
             arm_action = action[side][:6]
@@ -103,4 +103,4 @@ class Tiago:
         
         rospy.sleep(0.5)
 
-        input('Reset complete. Press ENTER to continue')
+        # input('Reset complete. Press ENTER to continue')
