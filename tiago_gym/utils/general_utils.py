@@ -22,3 +22,6 @@ class AttrDict(dict):
 
     def __setstate__(self, d):
         self = d  
+
+def copy_np_dict(d: dict):
+    return {k: v.copy() for k, v in d.items()}

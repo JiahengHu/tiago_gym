@@ -2,7 +2,7 @@ import time
 import numpy as np
 import cv2
 from tiago_gym.tiago.tiago_gym import TiagoGym
-from tiago_gym.wrappers.env_wrappers import TiagoPointHeadWrapper, DisplayImageWrapper
+from tiago_gym.wrappers.env_wrappers import TiagoPointHeadWrapper, DisplayImageWrapper, SimAndRealUncertaintyAwareWrapper
 
 env = TiagoGym(
         frequency=1,
@@ -15,19 +15,24 @@ env = TiagoGym(
         left_gripper_type='robotiq2F-85'
     )
 
-env = DisplayImageWrapper(TiagoPointHeadWrapper(env))
+exit(0)
+# env = DisplayImageWrapper(TiagoPointHeadWrapper(env))
+env = DisplayImageWrapper(SimAndRealUncertaintyAwareWrapper(env))
 env.reset()
+input()
+for i in range(100):
+    action = np.random.randint(1, 5)
+    # action = int(input('enter:'))
+    obs = env.step(action)[0]
 
-# for i in range(10):
-#     action = np.random.randint(1, 5)
-#     # action = int(input('enter:'))
-#     obs = env.step(action)[0]
-#     print(obs['head'])
-#     cv2.imshow('obs', obs['tiago_head_image']/255)
-#     print(obs['tiago_head_image'].shape)
-#     cv2.waitKey(1)
+    cv2.imshow('obs', obs['tiago_head_image']/255)
+    cv2.waitKey(1)
 
-# exit(0)
+    if i%10:
+        env.reset()
+        input()
+
+exit(0)
 
 ### RL stuff
 from stable_baselines3.common.monitor import Monitor
