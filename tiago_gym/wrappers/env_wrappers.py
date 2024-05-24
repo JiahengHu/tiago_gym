@@ -48,7 +48,7 @@ class SimAndRealUncertaintyAwareWrapper(gym.core.Wrapper):
         
     @property
     def action_space(self):
-        return spaces.Discrete(3)
+        return spaces.Discrete(5)
     
     def set_encoder(self, encoder):
         self.encoder = encoder
@@ -151,6 +151,30 @@ class SimAndRealUncertaintyAwareWrapper(gym.core.Wrapper):
         cv2.waitKey(1)
 
         return copy_np_dict(self.full_obs), reward, terminated, truncated, info
+
+from tiago_gym.utils.display_utils import FullscreenStringDisplay
+class DisplayStringWrapper(gym.core.Wrapper):
+
+    def __init__(self, env):
+        super().__init__(env)
+
+        self.display = FullscreenStringDisplay(update_interval=1, monitor_id=0)
+
+        self.string1 = "8:00 AM"
+        self.string2 = "5:15 PM"
+
+    def reset(self, *args, **kwargs):
+        obs, info = self.env.reset()
+        
+        if obs['privileged_info'][0]==1 :
+            print(self.string1)
+            self.display.display_text(self.string1)
+        else:
+            print(self.string2)
+            self.display.display_text(self.string2)
+        time.sleep(1)
+        
+        return obs, info
 
 from tiago_gym.utils.display_utils import FullscreenImageDisplay
 class DisplayImageWrapper(gym.core.Wrapper):
