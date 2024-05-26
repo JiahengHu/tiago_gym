@@ -2,7 +2,7 @@ import time
 import numpy as np
 import cv2
 from tiago_gym.tiago.tiago_gym import TiagoGym
-from tiago_gym.wrappers.env_wrappers import TiagoPointHeadWrapper, DisplayImageWrapper, SimAndRealUncertaintyAwareWrapper
+from l2l.wrappers.real_wrappers import TiagoPointHeadWrapper, DisplayImageWrapper, SimAndRealUncertaintyAwareWrapper
 
 env = TiagoGym(
         frequency=1,

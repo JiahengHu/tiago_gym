@@ -10,13 +10,13 @@ from sensor_msgs.msg import Image, CameraInfo
 def img_processing(data):
     br = CvBridge()
     img = cv2.cvtColor(br.imgmsg_to_cv2(data), cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, (84, 84))
+    img = cv2.resize(img, (224, 224))
     return np.array(img).astype(int)
 
 def depth_processing(data):
     br = CvBridge()
     img = br.imgmsg_to_cv2(data)
-    img = cv2.resize(img, (84, 84))
+    img = cv2.resize(img, (224, 224))
     return np.expand_dims(np.array(img), -1).astype(int)
 
 def flip_img(img):

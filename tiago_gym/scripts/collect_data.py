@@ -8,39 +8,34 @@ import h5py
 from tiago_gym.tiago.tiago_gym import TiagoGym    
 from tiago_gym.utils.camera_utils import Camera, flip_img, img_processing, depth_processing
 
-rospy.init_node('tiago_data_collect')
+from telemoma.human_interface.teleop_policy import TeleopPolicy
+from telemoma.configs.only_keyboard import teleop_config
 
-from telemoma.input_interface.teleop_policy import TeleopPolicy
-# from telemoma.configs.only_vr import teleop_config
-from telemoma.configs.vr_hand_human_base import teleop_config
-# from telemoma.configs.only_human_kpts import teleop_config
-
-
-SINGLE_HAND=False
+SINGLE_HAND=True
 def collect_trajectory(render=False):
 
-    agentview_left = Camera(img_topic="/agentview_left/color/image_raw",
-                              depth_topic="/agentview_left/aligned_depth_to_color/image_raw",)
+    # agentview_left = Camera(img_topic="/agentview_left/color/image_raw",
+    #                           depth_topic="/agentview_left/aligned_depth_to_color/image_raw",)
     
-    # flip the camera stream for the right hand side
-    agentview_right = Camera(img_topic="/agentview_right/color/image_raw",
-                              depth_topic="/agentview_right/aligned_depth_to_color/image_raw",
-                              img_post_proc_func=lambda x: flip_img(img_processing(x)),
-                              depth_post_proc_func=lambda x: flip_img(depth_processing(x)))
+    # # flip the camera stream for the right hand side
+    # agentview_right = Camera(img_topic="/agentview_right/color/image_raw",
+    #                           depth_topic="/agentview_right/aligned_depth_to_color/image_raw",
+    #                           img_post_proc_func=lambda x: flip_img(img_processing(x)),
+    #                           depth_post_proc_func=lambda x: flip_img(depth_processing(x)))
 
     env = TiagoGym(
                 frequency=10,
-                head_policy=None,#LookAtFixedPoint(point=np.array([0.8, 0, 0.8])),
+                head_enabled=False,#LookAtFixedPoint(point=np.array([0.8, 0, 0.8])),
                 base_enabled=teleop_config.base_controller is not None,
                 right_arm_enabled=teleop_config.arm_right_controller is not None,
                 left_arm_enabled=(not SINGLE_HAND),
                 right_gripper_type='robotiq2F-140',
-                left_gripper_type='robotiq2F-85',
-                external_cams={'agentview_left': agentview_left, 'agentview_right': agentview_right})
+                left_gripper_type='robotiq2F-85',)
+                # external_cams={'agentview_left': agentview_left, 'agentview_right': agentview_right})
     
     # rospy.on_shutdown(shutdown_helper)
-    
-    obs = env.reset()
+    print('started')
+    obs, _ = env.reset(reset_arms=False)
 
     teleop = TeleopPolicy(teleop_config)
     teleop.start()
@@ -54,8 +49,9 @@ def collect_trajectory(render=False):
     start_time = time.time()
     while not rospy.is_shutdown():
         action = teleop.get_action(obs)
-        buttons = action.extra['buttons']
-        n_obs, reward,  done, info = env.step(action)
+        print(action)
+        buttons = action.extra['buttons'] if 'buttons' in action.extra else {}
+        n_obs, reward, done, trunc, info = env.step(action)
         done = buttons.get('A', False)
         
         trajectory['dones'].append(done)
@@ -82,15 +78,12 @@ def collect_trajectory(render=False):
         obs = copy.deepcopy(n_obs)
 
         if render:
-            print(obs['agentview_right_image'].shape)
-            print(obs['agentview_left_image'].shape)
-            print(obs['agentview_right_depth'].shape)
-            print(obs['agentview_left_depth'].shape)
-            print()
+            print(obs['tiago_head_image'].shape)
 
-            color_img = np.concatenate((obs['agentview_left_image'], obs['agentview_right_image']), axis=1)/255
-            depth_img = np.clip(np.concatenate((obs['agentview_left_depth'], obs['agentview_right_depth']), axis=1), 0, 4000)/4000
+            # color_img = np.concatenate((obs['agentview_left_image'], obs['agentview_right_image']), axis=1)/255
+            # depth_img = np.clip(np.concatenate((obs['agentview_left_depth'], obs['agentview_right_depth']), axis=1), 0, 4000)/4000
 
+            color_img = obs['tiago_head_image']/255
             cv2.imshow('cam', color_img)
             cv2.waitKey(1)
     teleop.stop()
