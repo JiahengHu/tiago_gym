@@ -25,9 +25,7 @@ class TiagoHead:
         self.joint_reader = Listener(f'/head_controller/state', JointTrajectoryControllerState, post_process_func=joint_process_func)
 
     def setup_actors(self):
-        self.head_writer = None
-        if self.head_enabled:
-            self.head_writer = Publisher('/head_controller/command', JointTrajectory)
+        self.head_writer = Publisher('/head_controller/command', JointTrajectory)
 
         self.reset_state = 0
 

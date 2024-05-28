@@ -6,7 +6,7 @@ import json
 import pickle
 
 
-SINGLE_HAND=False
+SINGLE_HAND=True
 def stats_for_actions_and_low_dim_obs(args, demos):
     action_list = []
     obs_list = {
@@ -48,7 +48,7 @@ def stats_for_actions_and_low_dim_obs(args, demos):
     print(stats)
     return stats
 
-def preprocess(data, stats):
+def preprocess(data):
     d = {}
     for k in data.keys():
         if k == 'obs':
@@ -58,35 +58,25 @@ def preprocess(data, stats):
                     obs_data = data[k][obs_key][:]
                     resized_obs_data = []
                     for img in obs_data:
-                        if False and 'agentview' in obs_key:
-                            im = img[-500:, 480:980]
-                        else:
-                            im = img
+                        # if False and 'agentview' in obs_key:
+                        #     im = img[-500:, 480:980]
+                        # else:
+                        #     im = img
                         if 'depth' in obs_key:
-                            im = np.clip(im, 0, 4000)/4000
-                            assert np.max(im) <= 1, print(np.max(img))
+                            img = np.clip(img, 0, 4000)/4000
+                            assert np.max(img) <= 1, print(np.max(img))
                             
-                        resized_obs_data.append(cv2.resize(im.astype(float), (180, 180)))
+                        resized_obs_data.append(cv2.resize(img.astype(float), (224, 224)))
                         
                     d[k][obs_key] = np.array(resized_obs_data)
                 else:
-                    if obs_key in stats['mean'].keys():
-                        d[k][obs_key] = (data[k][obs_key][:] - stats['mean'][obs_key])/stats['std'][obs_key]
-                    else:
-                        d[k][obs_key] = data[k][obs_key][:]
+                    d[k][obs_key] = data[k][obs_key][:]
 
         else:
-            if k == 'actions':
-                action = data[k][:]
-                if SINGLE_HAND:
-                    action[:, :-2] = (action[:, :-1] - stats['mean']['actions'][:-1])/stats['std']['actions'][:-1]
-                else:
-                    action[:, :-2] = (action[:, :-2] - stats['mean']['actions'][:-2])/stats['std']['actions'][:-2]
-                # action = np.concatenate((action[:, :9], action[:, 15:16]), axis=-1)
-                # print('action shape', action.shape)
-                d[k] = action
-            else:
-                d[k] = data[k][:]
+            d[k] = data[k][:]
+    d['obs']['privileged_info'] = np.zeros((len(d['actions']), 2))
+    d['obs']['privileged_info'][:, 1] = 1
+    print(d['obs']['privileged_info']) 
     return d
 
 def get_demo_id(filename):
@@ -98,18 +88,18 @@ if __name__=='__main__':
     parser.add_argument("--data_path", type=str, help="path to data directory")
     parser.add_argument("--render", action="store_true", help="pass flag to render environment while data generation")
     parser.add_argument("--save_path", type=str, help="path to save directory")
-    parser.add_argument("--group_size", type=int, default=10, help="no. of trajectories in each file")
+    parser.add_argument("--group_size", type=int, default=30, help="no. of trajectories in each file")
     args = parser.parse_args()
 
     os.makedirs(args.save_path, exist_ok=True)
 
     demos = sorted(os.listdir(args.data_path), key=get_demo_id)
-    stats = stats_for_actions_and_low_dim_obs(args, demos) # generate data statistics
+    # stats = stats_for_actions_and_low_dim_obs(args, demos) # generate data statistics
 
     # save data statistics to file
-    dataset_stats_path = os.path.join(args.save_path, 'dataset_stats.pkl')
-    with open(dataset_stats_path, 'wb') as f:
-        pickle.dump(stats, f)
+    # dataset_stats_path = os.path.join(args.save_path, 'dataset_stats.pkl')
+    # with open(dataset_stats_path, 'wb') as f:
+    #     pickle.dump(stats, f)
     
     # loop through each individual group
     n_outputs = int(np.ceil(len(demos)/args.group_size))
@@ -132,8 +122,8 @@ if __name__=='__main__':
                     print(f"Adding {demo}")
                     total_num_demos += 1 
 
-                    # preprocess - normalize actions and low dim actions. Resize images
-                    d = preprocess(f, stats)
+                    # preprocess
+                    d = preprocess(f)
                     
                     for k in d.keys():
                         if k == 'obs':
@@ -154,9 +144,10 @@ if __name__=='__main__':
                     total_num_samples += len(d['actions'][()])
                     
                 if args.render:
-                    for i, img in enumerate(d['obs']['agentview_left_image']):
-                        cv2.imshow('img', img/255)
-                        cv2.imshow('depth', d['obs']['agentview_left_depth'][i])
+                    for i, (img, depth) in enumerate(zip(d['obs']['tiago_head_image'], d['obs']['tiago_head_depth'])):
+                        print(depth.shape)
+                        im = np.concatenate((img/255, depth[..., None].repeat(3, axis=2)), axis=1)
+                        cv2.imshow('img', im)
                         cv2.waitKey(1)
 
             grp.attrs["num_demos"] = total_num_demos

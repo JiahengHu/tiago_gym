@@ -15,22 +15,22 @@ env = TiagoGym(
         left_gripper_type='robotiq2F-85'
     )
 
-exit(0)
 # env = DisplayImageWrapper(TiagoPointHeadWrapper(env))
 env = DisplayImageWrapper(SimAndRealUncertaintyAwareWrapper(env))
-env.reset()
+print(env.observation_space)
+# env.reset()
+exit(0)
 input()
-for i in range(100):
-    action = np.random.randint(1, 5)
+for i in range(2):
+    # action = np.random.randint(1, 5)
     # action = int(input('enter:'))
-    obs = env.step(action)[0]
+    # obs = env.step(action)[0]
 
-    cv2.imshow('obs', obs['tiago_head_image']/255)
-    cv2.waitKey(1)
+    # cv2.imshow('obs', obs['tiago_head_image']/255)
+    # cv2.waitKey(1)
 
-    if i%10:
-        env.reset()
-        input()
+    env.reset()
+    input()
 
 exit(0)
 

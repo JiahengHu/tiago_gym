@@ -40,10 +40,10 @@ class Tiago:
 
         # top down (cover table / slide chair)
         self.reset_pose = {
-                'right': [0.43, -0.81, 1.60, 1.78, 1.34, -0.49, 1.15, 1],
+                'right': [0.89, -0.35, 1.76, 2.13, 1.90, 0.56, 1.80, 1],#[0.43, -0.81, 1.60, 1.78, 1.34, -0.49, 1.15, 1],
                 'left': [0.43, -0.81, 1.60, 1.78, 1.34, -0.49, 1.15, 1],
                 'torso': 0.25,
-                'head': [0.0, -0.3],
+                'head': [0.0, -0.6],
             }
 
     @property
@@ -72,30 +72,28 @@ class Tiago:
             
             if self.gripper[side] is not None:
                 self.gripper[side].step(gripper_action)
-
-        if self.head_enabled:
-            self.head.step(action)
         
-        if self.base_enabled:
+        if self.base_enabled and ('base' in action):
             self.base.step(action['base'])
 
-        if self.torso_enabled and (self.torso is not None):
+        if self.torso_enabled and (self.torso is not None) and ('torso' in action):
             self.torso.step(action['torso'])
         
-        if self.head_enabled:
+        if self.head_enabled and ('head' in action):
             self.head.step(action['head'])
 
     def reset(self, reset_arms=True):
         for side in ['right', 'left']:
-            if (self.reset_pose[side] is not None) and (self.arms[side].arm_enabled):
-                self.gripper[side].step(self.reset_pose[side][-1])
+            for _ in range(2):
+                if (self.reset_pose[side] is not None) and (self.arms[side].arm_enabled):
+                    self.gripper[side].step(self.reset_pose[side][-1])
 
-                if reset_arms:
-                    print(f'resetting {side}...{time.time()}')
-                    self.arms[side].reset(self.reset_pose[side][:-1])
-                    rospy.sleep(1)
+                    if reset_arms:
+                        print(f'resetting {side}...{time.time()}')
+                        self.arms[side].reset(self.reset_pose[side][:-1])
+                        rospy.sleep(1)
 
-        if self.head_enabled:
+        if 'head' in self.reset_pose:
             self.head.reset(self.reset_pose)
 
         if ('torso' in self.reset_pose.keys()) and (self.torso is not None):

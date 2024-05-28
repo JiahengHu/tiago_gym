@@ -30,19 +30,12 @@ if __name__ == '__main__':
             else:
                 print(k, demo[k][()].shape)
 
-        # agentview_depth= demo['obs']['agentview_depth'][()].astype(float)
-        agentview_right_depth = demo['obs']['agentview_right_depth'][()].astype(float)
-        agentview_left_depth = demo['obs']['agentview_left_depth'][()].astype(float)
-        depth_img = np.concatenate((agentview_left_depth, agentview_right_depth), axis=2)
+        depth_img = demo['obs']['tiago_head_depth'][()].astype(float)
         if np.max(depth_img) > 1:
             depth_img = np.clip(depth_img, 0, 4000)/4000
 
-        agentview_right_image = demo['obs']['agentview_right_image'][()].astype(float)
-        agentview_left_image = demo['obs']['agentview_left_image'][()].astype(float)
-        color_img = np.concatenate((agentview_left_image, agentview_right_image), axis=2)/255
-        img = color_img
-        # agentview = np.clip(agentview_image, 0, 4000)/4000
-        # tiago_head = np.clip(tiago_head_depth, 0, 4000)/4000
+        color_img = demo['obs']['tiago_head_image'][()].astype(float)/255
+        img = np.concatenate((color_img, depth_img.repeat(3, axis=3)), axis=2)
 
         # agentview = demo['obs']['agentview_image'][()].astype(float)/255
         # tiago_head = demo['obs']['agentview_right_image'][()].astype(float)/255
@@ -52,8 +45,7 @@ if __name__ == '__main__':
         
         start_time = time.time()
         for i in range(len(img)):
-            # cv2.imshow('exo', agentview[i])
-            cv2.imshow('ego', img[i])
+            cv2.imshow('img', img[i])
             cv2.waitKey(1)
             # input()
     # print('Episode time:', 10*(time.time() - start_time))

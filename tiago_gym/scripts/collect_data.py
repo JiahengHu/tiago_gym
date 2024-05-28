@@ -9,7 +9,8 @@ from tiago_gym.tiago.tiago_gym import TiagoGym
 from tiago_gym.utils.camera_utils import Camera, flip_img, img_processing, depth_processing
 
 from telemoma.human_interface.teleop_policy import TeleopPolicy
-from telemoma.configs.only_keyboard import teleop_config
+# from telemoma.configs.only_keyboard import teleop_config
+from telemoma.configs.only_vr import teleop_config
 
 SINGLE_HAND=True
 def collect_trajectory(render=False):
@@ -34,8 +35,8 @@ def collect_trajectory(render=False):
                 # external_cams={'agentview_left': agentview_left, 'agentview_right': agentview_right})
     
     # rospy.on_shutdown(shutdown_helper)
-    print('started')
-    obs, _ = env.reset(reset_arms=False)
+    obs, _ = env.reset(reset_arms=True)
+    input('press enter to start:')
 
     teleop = TeleopPolicy(teleop_config)
     teleop.start()
@@ -49,7 +50,6 @@ def collect_trajectory(render=False):
     start_time = time.time()
     while not rospy.is_shutdown():
         action = teleop.get_action(obs)
-        print(action)
         buttons = action.extra['buttons'] if 'buttons' in action.extra else {}
         n_obs, reward, done, trunc, info = env.step(action)
         done = buttons.get('A', False)
@@ -65,8 +65,7 @@ def collect_trajectory(render=False):
             if 'agentview' in k:
                 obs[k] = cv2.resize(obs[k].astype(float), (320, 180))
             elif 'tiago_head' in k:
-                continue
-                # obs[k] = cv2.resize(obs[k].astype(float), (640, 360))    
+                obs[k] = obs[k].astype(float)    
             trajectory['obs'][k].append(obs[k])
 
         if done:
@@ -78,7 +77,8 @@ def collect_trajectory(render=False):
         obs = copy.deepcopy(n_obs)
 
         if render:
-            print(obs['tiago_head_image'].shape)
+            # print(obs['tiago_head_image'].shape)
+            # print(obs.keys())
 
             # color_img = np.concatenate((obs['agentview_left_image'], obs['agentview_right_image']), axis=1)/255
             # depth_img = np.clip(np.concatenate((obs['agentview_left_depth'], obs['agentview_right_depth']), axis=1), 0, 4000)/4000

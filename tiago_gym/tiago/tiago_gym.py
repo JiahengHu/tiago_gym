@@ -1,4 +1,5 @@
 import gym
+import gymnasium
 import time
 import numpy as np
 import rospy
@@ -7,7 +8,7 @@ from gymnasium import spaces
 from tiago_gym.tiago.tiago_core import Tiago
 from tiago_gym.utils.general_utils import AttrDict
 
-class TiagoGym(gym.Env):
+class TiagoGym(gymnasium.Env):
 
     def __init__(self,
                     frequency=10,

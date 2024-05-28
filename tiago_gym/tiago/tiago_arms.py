@@ -58,6 +58,7 @@ class TiagoArms:
         target_pos = cur_pos + pos_delta
         # target_pos[0] = np.clip(target_pos[0], 0.1, 0.53)
         # target_pos[1] = np.clip(target_pos[1], 0.1, 0.8)
+        target_pos[2] = max(target_pos[2], -0.25)
 
         target_euler = add_angles(euler_delta, cur_euler)
         target_quat = euler_to_quat(target_euler)
