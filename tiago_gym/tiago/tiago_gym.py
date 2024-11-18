@@ -144,11 +144,12 @@ class TiagoGym(gymnasium.Env):
         return spaces.Dict(act_space)
 
     def _observation(self):
+        # TODO: we are going to change the observations anyway
         observations = AttrDict({
             'right': np.r_[np.array(self.tiago.arms['right'].arm_pose, dtype=np.float32), np.array(self.tiago.right_gripper_pos, dtype=np.float32)],
             'left': np.r_[np.array(self.tiago.arms['left'].arm_pose, dtype=np.float32), np.array(self.tiago.left_gripper_pos, dtype=np.float32)],
-            'base_delta_pose': np.array(self.tiago.base.get_delta_pose(), dtype=np.float32),
-            'base_velocity': np.array(self.tiago.base.get_velocity(), dtype=np.float32),
+            # 'base_delta_pose': np.array(self.tiago.base.get_delta_pose(), dtype=np.float32),
+            # 'base_velocity': np.array(self.tiago.base.get_velocity(), dtype=np.float32),
             'torso': np.array([self.tiago.torso.get_torso_extension()], dtype=np.float32),
             'head': np.array(self.tiago.head.get_head_joints(), dtype=np.float32),
         })

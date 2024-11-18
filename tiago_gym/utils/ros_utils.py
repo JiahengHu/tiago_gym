@@ -46,6 +46,24 @@ class Listener:
         while (self.most_recent_message is None) and (not rospy.is_shutdown()):
             print(f'Waiting for topic {self.input_topic_name} to publish.')
             rospy.sleep(0.02)
+            if "mock_rospy" in str(rospy.__path__):
+                # generate fake data
+                import numpy as np
+                if "gripper" in self.input_topic_name:
+                    most_recent_message = np.zeros(1)
+                elif "image" in self.input_topic_name:
+                    most_recent_message = np.zeros((480, 640, 3), dtype=np.uint8)
+                elif "odom" in self.input_topic_name:
+                    class Object(object):
+                        pass
+                    msg = {}
+                    msg['actual'] = np.ones(7, dtype=np.uint8)
+                    msg['pose'] = np.ones(7, dtype=np.uint8)
+                    most_recent_message = msg
+                    # most_recent_message = self.post_process_func(msg)
+                else:
+                    most_recent_message = np.zeros(7, dtype=np.uint8)
+                return most_recent_message
         
         data = self.most_recent_message if self.post_process_func is None else self.post_process_func(self.most_recent_message)
         return data

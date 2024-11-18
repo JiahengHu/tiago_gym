@@ -1,10 +1,16 @@
 import cv2
 import numpy as np
-import pyrealsense2 as rs
+try:
+    import pyrealsense2 as rs
+except:
+    print("pyrealsense2 not found: we will not be using the RealSense camera")
 from typing import Dict
 from tiago_gym.utils.ros_utils import Listener
 
-from cv_bridge import CvBridge
+try:
+    from cv_bridge import CvBridge
+except:
+    print("cv_bridge not found: we will not be able to convert ROS images to OpenCV images")
 from sensor_msgs.msg import Image, CameraInfo
 
 def img_processing(data):
