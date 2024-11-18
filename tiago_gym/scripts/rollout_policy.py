@@ -9,7 +9,7 @@ import torch
 from tiago_gym.tiago.tiago_gym import TiagoGym    
 from tiago_gym.utils.camera_utils import Camera, flip_img, img_processing, depth_processing
 # from tiago_gym.wrappers.policy_wrappers import RoboMimicPolicy
-
+from tiago_gym.env.hierarchical_env_wrapper import HierarchicalDiscreteEnv
 
 rospy.init_node('tiago_rollout_policy')
 
@@ -49,6 +49,9 @@ def rollout_policy(model_ckpt, save_vid=False):
             left_gripper_type='robotiq2F-85',
             external_cams={'agentview_left': agentview_left, 'agentview_right': agentview_right})
 
+    # TODO: wrap the env in the hierarchical env wrapper
+    # env = HierarchicalDiscreteEnv(env, ...
+
     obs, _ = env.reset() # We need to follow the gymnasium api now
     
     if save_vid:
@@ -76,24 +79,26 @@ def rollout_policy(model_ckpt, save_vid=False):
         # cv2.imshow('a', color_img.transpose(1, 2, 0))
         # cv2.waitKey(1)
 
-        import ipdb; ipdb.set_trace()
-        policy_act = policy.get_action(obs)
-        if SINGLE_HAND:
-            right_act = policy_act[3:10]
-        else:
-            right_act = np.concatenate((policy_act[3:9], np.clip([policy_act[15]], 0, 1)))
-            left_act = np.concatenate((policy_act[9:15], np.clip([policy_act[16]], 0, 1)))
-            action['left'] = left_act
-            print('left', left_act)
-        action['right'] = right_act
-        action['base'] = policy_act[:3]
+        # policy_act = policy.get_action(obs)
+        # if SINGLE_HAND:
+        #     right_act = policy_act[3:10]
+        # else:
+        #     right_act = np.concatenate((policy_act[3:9], np.clip([policy_act[15]], 0, 1)))
+        #     left_act = np.concatenate((policy_act[9:15], np.clip([policy_act[16]], 0, 1)))
+        #     action['left'] = left_act
+        #     print('left', left_act)
+        # action['right'] = right_act
+        # action['base'] = policy_act[:3]
+        #
+        # print('right', right_act)
+        # print('base', policy_act[:3])
+        # print()
 
-        print('right', right_act)
-        print('base', policy_act[:3])
-        print()
+        action = np.zeros(17)
             
         n_obs, reward,  done, info = env.step(action)
-        done = buttons.get('A', False)
+        done = False
+        import ipdb; ipdb.set_trace()
 
         if done:
             break
