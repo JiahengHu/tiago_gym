@@ -81,25 +81,23 @@ def rollout_policy(model_ckpt, save_vid=False):
         # cv2.waitKey(1)
 
         # policy_act = policy.get_action(obs)
-        # if SINGLE_HAND:
-        #     right_act = policy_act[3:10]
-        # else:
-        #     right_act = np.concatenate((policy_act[3:9], np.clip([policy_act[15]], 0, 1)))
-        #     left_act = np.concatenate((policy_act[9:15], np.clip([policy_act[16]], 0, 1)))
-        #     action['left'] = left_act
-        #     print('left', left_act)
-        # action['right'] = right_act
-        # action['base'] = policy_act[:3]
-        #
-        # print('right', right_act)
-        # print('base', policy_act[:3])
-        # print()
+        
+        action = {}
 
-        action = np.zeros(17)
-            
-        n_obs, reward,  done, info = env.step(action)
+        policy_act = np.zeros(17)
+        policy_act[0] = 0.1
+        if SINGLE_HAND:
+            right_act = policy_act[3:10]
+        else:
+            right_act = np.concatenate((policy_act[3:9], np.clip([policy_act[15]], 0, 1)))
+            left_act = np.concatenate((policy_act[9:15], np.clip([policy_act[16]], 0, 1)))
+            action['left'] = left_act
+            print('left', left_act)
+        action['right'] = right_act
+        action['base'] = policy_act[:3]
+        # import ipdb; ipdb.set_trace()
+        n_obs, reward, done, truncated, info = env.step(action)
         done = False
-        import ipdb; ipdb.set_trace()
 
         if done:
             break
