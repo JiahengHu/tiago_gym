@@ -23,7 +23,7 @@ class TiagoGym(gymnasium.Env):
         
         super(TiagoGym).__init__()
 
-        rospy.init_node('tiago_gym')
+        # rospy.init_node('tiago_gym')
 
         self.frequency = frequency
         self.head_enabled = head_enabled

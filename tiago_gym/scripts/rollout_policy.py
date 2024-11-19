@@ -30,14 +30,14 @@ def rollout_policy(model_ckpt, save_vid=False):
     # load policy
     policy = None # TOdo: Load policy
 
-    agentview_left = Camera(img_topic="/agentview_left/color/image_raw",
-                              depth_topic="/agentview_left/aligned_depth_to_color/image_raw",)
+    # agentview_left = Camera(img_topic="/agentview_left/color/image_raw",
+    #                           depth_topic="/agentview_left/aligned_depth_to_color/image_raw",)
     
-    # flip the camera stream for the right hand side
-    agentview_right = Camera(img_topic="/agentview_right/color/image_raw",
-                              depth_topic="/agentview_right/aligned_depth_to_color/image_raw",
-                              img_post_proc_func=lambda x: flip_img(img_processing(x)),
-                              depth_post_proc_func=lambda x: flip_img(depth_processing(x)))
+    # # flip the camera stream for the right hand side
+    # agentview_right = Camera(img_topic="/agentview_right/color/image_raw",
+    #                           depth_topic="/agentview_right/aligned_depth_to_color/image_raw",
+    #                           img_post_proc_func=lambda x: flip_img(img_processing(x)),
+    #                           depth_post_proc_func=lambda x: flip_img(depth_processing(x)))
 
     env = TiagoGym(
             frequency=10,
@@ -47,7 +47,8 @@ def rollout_policy(model_ckpt, save_vid=False):
             left_arm_enabled=(not SINGLE_HAND),
             right_gripper_type='robotiq2F-140',
             left_gripper_type='robotiq2F-85',
-            external_cams={'agentview_left': agentview_left, 'agentview_right': agentview_right})
+            # external_cams={'agentview_left': agentview_left, 'agentview_right': agentview_right}
+            )
 
     # TODO: wrap the env in the hierarchical env wrapper
     # env = HierarchicalDiscreteEnv(env, ...
