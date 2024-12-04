@@ -49,16 +49,7 @@ class TiagoHead:
         return message
 
     def step(self, action):
-        delta = np.zeros(2)
-        if action == 1:
-            delta[0] = 0.3
-        elif action == 2:
-            delta[0] = -0.3
-        elif action == 3:
-            delta[1] = 0.3
-        elif action == 4:
-            delta[1] = -0.3
-
+        delta = action
         head_joint_goal = self.get_head_joints() + delta
 
         # joint limits

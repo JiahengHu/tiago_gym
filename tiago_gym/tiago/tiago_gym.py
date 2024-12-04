@@ -109,37 +109,45 @@ class TiagoGym(gymnasium.Env):
     @property
     def action_space(self):
         act_space = OrderedDict()
-        
         if self.right_arm_enabled:
+            r_arm_max = 0.1
             act_space['right'] = spaces.Box(
-                low=-np.inf,
-                high=np.inf,
-                shape=(3+4+int(self.right_gripper_enabled)),
+                low=-r_arm_max,
+                high=r_arm_max,
+                shape=(3+4+int(self.right_gripper_enabled),),
             )
 
         if self.left_arm_enabled:
+            l_arm_max = 0.1
             act_space['left'] = spaces.Box(
-                low=-np.inf,
-                high=np.inf,
-                shape=(3+4+int(self.left_gripper_enabled)),
+                low=-l_arm_max,
+                high=l_arm_max,
+                shape=(3+4+int(self.left_gripper_enabled),),
             )
 
         if self.base_enabled:
+            base_max = 0.3
             act_space['base'] = spaces.Box(
-                low=-np.inf,
-                high=np.inf,
+                low=-base_max,
+                high=base_max,
                 shape=(3,), # 2d x, y linear velocity, 1d z angular velocity
             )
 
         if self.torso_enabled:
+            torso_max = 0.25
             act_space['torso'] = spaces.Box(
-                low=-np.inf,
-                high=np.inf,
+                low=-torso_max,
+                high=torso_max,
                 shape=(1,),
             )
         
         if self.head_enabled:
-            act_space['head'] = spaces.Discrete(3)
+            # Originally, discrete actions for 0.3, -0.3
+            act_space['head'] = spaces.Box(
+                low=-0.3,
+                high=0.3,
+                shape=(2,),
+            )
 
         return spaces.Dict(act_space)
 
@@ -159,6 +167,12 @@ class TiagoGym(gymnasium.Env):
             observations[f'{cam}_depth'] = np.array(self.cameras[cam].get_depth(), dtype=np.float32)
 
         return observations
+
+    # TODO: This would return the things that high-level policy needs, such as images
+    def get_additional_states(self, obs):
+        return {
+            "dummy": 0
+        }
 
     def reset(self, *args, **kwargs):
         print('Resetting...')
@@ -190,3 +204,53 @@ class TiagoGym(gymnasium.Env):
         self.steps += 1
 
         return obs, rew, terminate, truncate, info
+
+# wrap the TiagoGym as a gym environment with new action space
+class TiagoGymWrapper(gym.Env):
+    def __init__(self, env):
+        self.env = env
+        self.observation_space = env.observation_space
+        self.action_space, self.action_keys = self.get_action_dict()
+
+    def step(self, action):
+        action_dict = {}
+        idx = 0
+        for key, value in self.action_keys.items():
+            action_dict[key] = action[idx:idx+value.shape[0]]
+            idx += value.shape[0]
+        obs, rew, terminate, truncate, info = self.env.step(action_dict)
+        done = terminate or truncate
+        return obs, rew, done, info
+
+    def get_action_dict(self):
+        action_dict = self.env.action_space
+        combine_shape = 0
+        combine_low = np.array([])
+        combine_high = np.array([])
+        action_keys = list(action_dict.keys())
+        for key, value in action_dict.items():
+            combine_shape += value.shape[0]
+            combine_low = np.concatenate((combine_low, value.low))
+            combine_high = np.concatenate((combine_high, value.high))
+        combine_shape = (combine_shape,)
+        combined_box = gym.spaces.Box(low=combine_low, high=combine_high, shape=combine_shape, dtype=np.float32)
+        return combined_box, action_dict
+
+    def reset(self):
+        obs, _ = self.env.reset()
+        return obs
+
+    def render(self, mode='human'):
+        return self.env.render(mode)
+
+    def close(self):
+        return self.env.close()
+
+    def seed(self, seed=None):
+        return self.env.seed(seed)
+
+    def configure(self, *args, **kwargs):
+        return self.env.configure(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self.env, name)

@@ -50,11 +50,17 @@ def rollout_policy(model_ckpt, save_vid=False):
             # external_cams={'agentview_left': agentview_left, 'agentview_right': agentview_right}
             )
 
-    # TODO: wrap the env in the hierarchical env wrapper
-    # env = HierarchicalDiscreteEnv(env, ...
+    skill_channel = 5
+    skill_dim = 5
+    low_level_step = 100 # as long as this is consistent with the simulation policy, in env_helper
+    actor = None # TODO: Load low level actor
+    from tiago_gym.tiago.tiago_gym import TiagoGymWrapper
+    env = TiagoGymWrapper(env)
+    env = HierarchicalDiscreteEnv(env, skill_channel, skill_dim, low_level_step,
+                                  device, actor)
 
-    obs, _ = env.reset() # We need to follow the gymnasium api now
-    
+    obs = env.reset() # We need to follow the gymnasium api now
+
     if save_vid:
         video = imageio.get_writer(f'/home/pal/Desktop/tiago_teleop/experiments/supp_videos/il_{time.asctime().replace(" ", "_")}.mp4', fps=10)
 
@@ -96,7 +102,7 @@ def rollout_policy(model_ckpt, save_vid=False):
         action['right'] = right_act
         action['base'] = policy_act[:3]
         # import ipdb; ipdb.set_trace()
-        n_obs, reward, done, truncated, info = env.step(action)
+        n_obs, reward, done, info = env.step(action)
         done = False
 
         if done:
